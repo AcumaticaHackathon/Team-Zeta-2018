@@ -5,7 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Compilation;
 using PX.Data;
+using PX.Data.EP;
 using PX.Objects.AP;
 using PX.Objects.CR;
 using PX.SM;
@@ -16,7 +18,7 @@ namespace TeamZeta
     {
         public override void Initialize()
         {
-            Base.Create.AddMenuAction(CreateAPVoucher);
+            //Base.Create.AddMenuAction(CreateAPVoucher);
             Base.Create.AddMenuAction(CreateAP);
         }
 
@@ -66,12 +68,27 @@ namespace TeamZeta
                 doc.GetExtension<APInvoiceExt>().UsrFileURL = url;
                 doc.LineCntr = 0;
                 doc = graph.Document.Insert(doc);
+
+                CRSMEmail email = Base.Emails.Current;
+
+                (email).Selected = false;
+                CRSMEmail copy = PXCache<CRSMEmail>.CreateCopy(email);
+  
+                CRActivity newActivity = (CRActivity)graph.Caches[typeof(CRActivity)].Insert();
+
+                copy.BAccountID = newActivity.BAccountID;
+                copy.ContactID = newActivity.ContactID;
+                copy.RefNoteID = newActivity.RefNoteID;
+                copy.MPStatus = MailStatusListAttribute.Processed;
+                copy.Exception = null;
+                PXRefNoteSelectorAttribute.EnsureNotePersistence(Base, Base.entityFilter.Current.Type, Base.entityFilter.Current.RefNoteID);
+                copy = Base.Emails.Update(copy);
+                Base.Save.Press();
+
                 PXNoteAttribute.CopyNoteAndFiles(Base.Emails.Cache, Base.Emails.Current, graph.Document.Cache, doc);
                 PXRedirectHelper.TryRedirect(graph, PXRedirectHelper.WindowMode.NewWindow);
 
             }
-
-
             return adapter.Get();
         }
 

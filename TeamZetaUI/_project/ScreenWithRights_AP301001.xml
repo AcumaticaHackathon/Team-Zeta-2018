@@ -1,0 +1,30 @@
+﻿<ScreenWithRights>
+    <data-set>
+        <relations format-version="3" relations-version="20160101" main-table="SiteMap">
+            <link from="RolesInCache (ScreenID)" to="SiteMap (ScreenID)" />
+            <link from="RolesInGraph (ScreenID)" to="SiteMap (ScreenID)" />
+            <link from="RolesInMember (ScreenID)" to="SiteMap (ScreenID)" />
+            <link from="Roles (Rolename, ApplicationName)" to="RolesInCache (Rolename, ApplicationName)" type="FromMaster" updateable="False" />
+            <link from="Roles (Rolename, ApplicationName)" to="RolesInGraph (Rolename, ApplicationName)" type="FromMaster" updateable="False" />
+            <link from="Roles (Rolename, ApplicationName)" to="RolesInMember (Rolename, ApplicationName)" type="FromMaster" updateable="False" />
+        </relations>
+        <layout>
+            <table name="SiteMap">
+                <table name="RolesInCache" uplink="(ScreenID) = (ScreenID)" />
+                <table name="RolesInGraph" uplink="(ScreenID) = (ScreenID)" />
+                <table name="RolesInMember" uplink="(ScreenID) = (ScreenID)" />
+            </table>
+            <table name="Roles" />
+        </layout>
+        <data>
+            <SiteMap>
+                <row Position="0" Title="Bills and Adjustments" Url="~/Pages/AP/AP301001.aspx" Expanded="0" IsFolder="0" ScreenID="AP301001" NodeID="dd8f1f5b-5b15-4f8f-83f1-cf3df7682619" ParentID="f76c4fea-cdf7-4298-9ffa-d603bb8807ad">
+                    <RolesInGraph Rolename="Administrator" ApplicationName="/" Accessrights="4" />
+                </row>
+            </SiteMap>
+            <Roles>
+                <row Rolename="Administrator" ApplicationName="/" Descr="System Administrator" Guest="0" />
+            </Roles>
+        </data>
+    </data-set>
+</ScreenWithRights>

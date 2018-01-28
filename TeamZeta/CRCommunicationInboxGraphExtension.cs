@@ -31,7 +31,7 @@ namespace TeamZeta
         public PXAction<CRSMEmail> CreateAP;
         [PXUIField(DisplayName = "Create AP Bill", MapEnableRights = PXCacheRights.Select, MapViewRights = PXCacheRights.Select)]
         [PXButton()]
-        public virtual void createAP(PXAdapter adapter)
+        public virtual IEnumerable createAP(PXAdapter adapter)
         {
 
             UploadFileRevision file = PXSelectJoin<UploadFileRevision,
@@ -59,16 +59,20 @@ namespace TeamZeta
                 rooturl = HttpContext.Current.Request.Url.GetLeftPart(UriPartial.Authority) + applicationpath;
 
                 url = string.Concat(rooturl != null ? rooturl : string.Empty, HandlerURL, file.FileID.GetValueOrDefault(Guid.Empty).ToString("D"));
+
+
+                APInvoiceEntryPXInhExt graph = PXGraph.CreateInstance<APInvoiceEntryPXInhExt>();
+                graph.Clear();
+                APInvoice doc = (APInvoice)graph.Document.Cache.CreateInstance();
+                doc.VendorID = 6995;
+                doc.InvoiceNbr = "TBD";
+                doc.GetExtension<APInvoiceExt>().UsrFileURL = url;
+                graph.Document.Insert(doc);
+                PXRedirectHelper.TryRedirect(graph, PXRedirectHelper.WindowMode.NewWindow);
+
             }
 
-            APInvoiceEntry graph = PXGraph.CreateInstance<APInvoiceEntry>();
-            graph.Clear();
-            APInvoice doc = (APInvoice)graph.Document.Cache.CreateInstance();
-            doc.VendorID = 6995;
-            doc.InvoiceNbr = "TBD";
-            doc.GetExtension<APInvoiceExt>().UsrFileURL = url;
-            graph.Document.Insert(doc);
-            PXRedirectHelper.TryRedirect(graph, PXRedirectHelper.WindowMode.NewWindow);
+            return adapter.Get();
         }
 
 

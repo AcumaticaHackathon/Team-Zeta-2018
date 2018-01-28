@@ -66,6 +66,7 @@ namespace TeamZeta
 				APInvoice doc = (APInvoice)graph.Document.Cache.CreateInstance();
 				doc.GetExtension<APInvoiceExt>().UsrFileURL = url;
 				doc.LineCntr = 0;
+				TryFillValuesFromPDF(graph.Document.Cache, doc);
 				doc = graph.Document.Insert(doc);
 
 				CRSMEmail email = Base.Emails.Current;
@@ -90,5 +91,31 @@ namespace TeamZeta
 			}
 			return adapter.Get();
 		}
-	}
+
+	    private void TryFillValuesFromPDF(PXCache cache, APInvoice invoice)
+	    {
+		    string[] content = PDFParser.ParseFirstFileAsPDF(cache, invoice);
+		    if (content != null)
+		    {
+			    PXSelectBase<Vendor> select = new PXSelect<Vendor, Where<
+				    Vendor.acctCD, Equal<Required<Vendor.acctCD>>,
+				    Or<Vendor.acctName, Equal<Required<Vendor.acctName>>>>>(Base);
+
+			    int? vendorID = null;
+
+			    foreach (string phrase in content)
+			    {
+				    Vendor vendor = select.SelectSingle(phrase, phrase);
+
+				    if (vendor != null)
+				    {
+					    vendorID = vendor.BAccountID;
+					    break;
+				    }
+			    }
+
+			    invoice.VendorID = vendorID;
+		    }
+	    }
+    }
 }

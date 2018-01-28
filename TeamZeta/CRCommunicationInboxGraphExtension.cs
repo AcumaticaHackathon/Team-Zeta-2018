@@ -18,7 +18,6 @@ namespace TeamZeta
     {
         public override void Initialize()
         {
-            //Base.Create.AddMenuAction(CreateAPVoucher);
             Base.Create.AddMenuAction(CreateAP);
         }
 
@@ -92,59 +91,7 @@ namespace TeamZeta
             return adapter.Get();
         }
 
-
-        public PXAction<CRSMEmail> CreateAPVoucher;
-        [PXUIField(DisplayName = "AP Voucher", MapEnableRights = PXCacheRights.Select, MapViewRights = PXCacheRights.Select)]
-        [PXButton()]
-        public virtual IEnumerable createAPVoucher(PXAdapter adapter)
-        {
-            List<CRSMEmail> list = new List<CRSMEmail>();
-            
-            foreach(CRSMEmail email in Base.Emails.Select())
-            {
-                if (email.Selected.GetValueOrDefault(false))
-                {
-                    list.Add(email);
-                }
-            }
-
-            PXLongOperation.StartOperation(this, delegate ()
-            {
-                createAPVoucherTemplate(Base.Caches[typeof(CRSMEmail)], list);
-                //APInvoiceEntry graph = PXGraph.CreateInstance<APInvoiceEntry>();
-                //foreach (CRSMEmail email in list)
-                //{
-                //    graph.Clear();
-                //    APInvoice doc = (APInvoice)graph.Document.Cache.CreateInstance();
-                //    doc.VendorID = 6995;
-                //    doc.InvoiceNbr = "TBD";
-                //    PXNoteAttribute.CopyNoteAndFiles(Base.Caches[typeof(CRSMEmail)], email, graph.Document.Cache, graph.Document.Current, true, true);
-                //    graph.Document.Insert(doc);
-                //    graph.Save.Press();
-                //}
-            });          
-            return adapter.Get();
-        }
-
-        public static void createAPVoucherTemplate(PXCache cache, List<CRSMEmail> emailList)
-        {
-            APInvoiceEntry graph = PXGraph.CreateInstance<APInvoiceEntry>();
-            foreach (CRSMEmail email in emailList)
-            {
-                graph.Clear();
-                APInvoice doc = (APInvoice)graph.Document.Cache.CreateInstance();
-                doc.VendorID = 6995;
-                doc.InvoiceNbr = "TBD";
-                graph.Document.Insert(doc);
-                graph.Save.Press();
-                PXNoteAttribute.CopyNoteAndFiles(cache, email, graph.Document.Cache, graph.Document.Current, true, true);              
-                graph.Save.Press();
-            }
-        }
-
-
-
-
+        
     }
 
 

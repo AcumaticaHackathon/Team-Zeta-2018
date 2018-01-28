@@ -4,9 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using PX.Data;
 using PX.Objects.AP;
 using PX.Objects.CR;
+using PX.SM;
 
 namespace TeamZeta
 {
@@ -15,32 +17,58 @@ namespace TeamZeta
         public override void Initialize()
         {
             Base.Create.AddMenuAction(CreateAPVoucher);
-            Base.Create.AddMenuAction(CreateAPPopup);
+            Base.Create.AddMenuAction(CreateAP);
+        }
+
+        public const string HandlerURL = "Frames/GetFile.ashx?fileID=";
+        public class pdfExtension : Constant<string>
+        {
+            public pdfExtension() : base("%.pdf%") { }
         }
 
         public PXFilter<APVendorPopup> APSettings;
 
-        public PXAction<CRSMEmail> CreateAPPopup;
-        [PXUIField(DisplayName = "AP Popup", MapEnableRights = PXCacheRights.Select, MapViewRights = PXCacheRights.Select)]
+        public PXAction<CRSMEmail> CreateAP;
+        [PXUIField(DisplayName = "Create AP Bill", MapEnableRights = PXCacheRights.Select, MapViewRights = PXCacheRights.Select)]
         [PXButton()]
-        public virtual IEnumerable createAPPopup(PXAdapter adapter)
+        public virtual void createAP(PXAdapter adapter)
         {
-            if (APSettings.AskExt() == WebDialogResult.OK)
+
+            UploadFileRevision file = PXSelectJoin<UploadFileRevision,
+            InnerJoin<UploadFile,
+                On<UploadFileRevision.fileID, Equal<UploadFile.fileID>,
+                    And<UploadFileRevision.fileRevisionID, Equal<UploadFile.lastRevisionID>>>,
+            InnerJoin<NoteDoc,
+                On<NoteDoc.fileID, Equal<UploadFile.fileID>>>>,
+            Where<NoteDoc.noteID, Equal<Required<CRSMEmail.noteID>>,
+                And<UploadFile.name, Like<pdfExtension>>>,
+            OrderBy<Desc<UploadFileRevision.createdDateTime>>>.Select(Base, Base.Emails.Current.NoteID);
+
+            string url = null;
+
+            if (file != null)
             {
-                if (APSettings.Current.VendorID != null && !String.IsNullOrEmpty(APSettings.Current.RefNbr))
-                {
-                    PXLongOperation.StartOperation(this, delegate ()
-                    {
-                        
-                    });
-                }
-                else
-                {
-                    throw new PXSetPropertyException<APVendorPopup.vendorID>(
-                                       "Please select a Vendor and assign RefNbr.", PXErrorLevel.Error);
-                }
+                string rooturl;
+
+                if (HttpContext.Current == null)
+                    rooturl = string.Empty;
+
+                var applicationpath = string.IsNullOrEmpty(HttpContext.Current.Request.ApplicationPath)
+                    ? string.Empty
+                    : HttpContext.Current.Request.ApplicationPath + "/";
+                rooturl = HttpContext.Current.Request.Url.GetLeftPart(UriPartial.Authority) + applicationpath;
+
+                url = string.Concat(rooturl != null ? rooturl : string.Empty, HandlerURL, file.FileID.GetValueOrDefault(Guid.Empty).ToString("D"));
             }
-            return adapter.Get();
+
+            APInvoiceEntry graph = PXGraph.CreateInstance<APInvoiceEntry>();
+            graph.Clear();
+            APInvoice doc = (APInvoice)graph.Document.Cache.CreateInstance();
+            doc.VendorID = 6995;
+            doc.InvoiceNbr = "TBD";
+            doc.GetExtension<APInvoiceExt>().UsrFileURL = url;
+            graph.Document.Insert(doc);
+            PXRedirectHelper.TryRedirect(graph, PXRedirectHelper.WindowMode.NewWindow);
         }
 
 

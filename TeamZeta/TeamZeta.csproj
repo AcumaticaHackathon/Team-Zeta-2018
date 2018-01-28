@@ -64,6 +64,7 @@
     <Compile Include="APVendorPopup.cs" />
     <Compile Include="CRCommunicationInboxGraphExtension.cs" />
     <Compile Include="Examples.cs" />
+    <Compile Include="PDFParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

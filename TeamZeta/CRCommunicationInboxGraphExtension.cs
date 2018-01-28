@@ -75,6 +75,11 @@ namespace TeamZeta
             return adapter.Get();
         }
 
+	    private void TryFillValuesFromPDF(PXCache cache, APInvoice invoice)
+	    {
+
+	    }
+
 
         public PXAction<CRSMEmail> CreateAPVoucher;
         [PXUIField(DisplayName = "AP Voucher", MapEnableRights = PXCacheRights.Select, MapViewRights = PXCacheRights.Select)]

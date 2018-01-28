@@ -30,72 +30,65 @@ namespace TeamZeta
         public PXFilter<APVendorPopup> APSettings;
 
         public PXAction<CRSMEmail> CreateAP;
-        [PXUIField(DisplayName = "Create AP Bill", MapEnableRights = PXCacheRights.Select, MapViewRights = PXCacheRights.Select)]
-        [PXButton()]
-        public virtual IEnumerable createAP(PXAdapter adapter)
-        {
-            UploadFileRevision file = PXSelectJoin<UploadFileRevision,
-            InnerJoin<UploadFile,
-                On<UploadFileRevision.fileID, Equal<UploadFile.fileID>,
-                    And<UploadFileRevision.fileRevisionID, Equal<UploadFile.lastRevisionID>>>,
-            InnerJoin<NoteDoc,
-                On<NoteDoc.fileID, Equal<UploadFile.fileID>>>>,
-            Where<NoteDoc.noteID, Equal<Required<CRSMEmail.noteID>>,
-                And<UploadFile.name, Like<pdfExtension>>>,
-            OrderBy<Desc<UploadFileRevision.createdDateTime>>>.Select(Base, Base.Emails.Current.NoteID);
+		[PXUIField(DisplayName = "Create AP Bill", MapEnableRights = PXCacheRights.Select, MapViewRights = PXCacheRights.Select)]
+		[PXButton()]
+		public virtual IEnumerable createAP(PXAdapter adapter)
+		{
+			UploadFileRevision file = PXSelectJoin<UploadFileRevision,
+			InnerJoin<UploadFile,
+				On<UploadFileRevision.fileID, Equal<UploadFile.fileID>,
+					And<UploadFileRevision.fileRevisionID, Equal<UploadFile.lastRevisionID>>>,
+			InnerJoin<NoteDoc,
+				On<NoteDoc.fileID, Equal<UploadFile.fileID>>>>,
+			Where<NoteDoc.noteID, Equal<Required<CRSMEmail.noteID>>,
+				And<UploadFile.name, Like<pdfExtension>>>,
+			OrderBy<Desc<UploadFileRevision.createdDateTime>>>.Select(Base, Base.Emails.Current.NoteID);
 
-            string url = null;
+			string url = null;
 
-            if (file != null)
-            {
-                string rooturl;
+			if (file != null)
+			{
+				string rooturl;
 
-                if (HttpContext.Current == null)
-                    rooturl = string.Empty;
+				if (HttpContext.Current == null)
+					rooturl = string.Empty;
 
-                var applicationpath = string.IsNullOrEmpty(HttpContext.Current.Request.ApplicationPath)
-                    ? string.Empty
-                    : HttpContext.Current.Request.ApplicationPath + "/";
-                rooturl = HttpContext.Current.Request.Url.GetLeftPart(UriPartial.Authority) + applicationpath;
+				var applicationpath = string.IsNullOrEmpty(HttpContext.Current.Request.ApplicationPath)
+					? string.Empty
+					: HttpContext.Current.Request.ApplicationPath + "/";
+				rooturl = HttpContext.Current.Request.Url.GetLeftPart(UriPartial.Authority) + applicationpath;
 
-                url = string.Concat(rooturl != null ? rooturl : string.Empty, HandlerURL, file.FileID.GetValueOrDefault(Guid.Empty).ToString("D"));
-
-
-                APInvoiceEntryPXInhExt graph = PXGraph.CreateInstance<APInvoiceEntryPXInhExt>();
-                graph.Clear();
-                APInvoice doc = (APInvoice)graph.Document.Cache.CreateInstance();
-                doc.GetExtension<APInvoiceExt>().UsrFileURL = url;
-                doc.LineCntr = 0;
-                doc = graph.Document.Insert(doc);
-
-                CRSMEmail email = Base.Emails.Current;
-
-                (email).Selected = false;
-                CRSMEmail copy = PXCache<CRSMEmail>.CreateCopy(email);
-  
-                CRActivity newActivity = (CRActivity)graph.Caches[typeof(CRActivity)].Insert();
-
-                copy.BAccountID = newActivity.BAccountID;
-                copy.ContactID = newActivity.ContactID;
-                copy.RefNoteID = newActivity.RefNoteID;
-                copy.MPStatus = MailStatusListAttribute.Processed;
-                copy.Exception = null;
-                PXRefNoteSelectorAttribute.EnsureNotePersistence(Base, Base.entityFilter.Current.Type, Base.entityFilter.Current.RefNoteID);
-                copy = Base.Emails.Update(copy);
-                Base.Save.Press();
-
-                PXNoteAttribute.CopyNoteAndFiles(Base.Emails.Cache, Base.Emails.Current, graph.Document.Cache, doc);
-                PXRedirectHelper.TryRedirect(graph, PXRedirectHelper.WindowMode.NewWindow);
-
-            }
-            return adapter.Get();
-        }
-
-        
-    }
+				url = string.Concat(rooturl != null ? rooturl : string.Empty, HandlerURL, file.FileID.GetValueOrDefault(Guid.Empty).ToString("D"));
 
 
+				APInvoiceEntryPXInhExt graph = PXGraph.CreateInstance<APInvoiceEntryPXInhExt>();
+				graph.Clear();
+				APInvoice doc = (APInvoice)graph.Document.Cache.CreateInstance();
+				doc.GetExtension<APInvoiceExt>().UsrFileURL = url;
+				doc.LineCntr = 0;
+				doc = graph.Document.Insert(doc);
 
+				CRSMEmail email = Base.Emails.Current;
 
+				(email).Selected = false;
+				CRSMEmail copy = PXCache<CRSMEmail>.CreateCopy(email);
 
+				CRActivity newActivity = (CRActivity)graph.Caches[typeof(CRActivity)].Insert();
+
+				copy.BAccountID = newActivity.BAccountID;
+				copy.ContactID = newActivity.ContactID;
+				copy.RefNoteID = newActivity.RefNoteID;
+				copy.MPStatus = MailStatusListAttribute.Processed;
+				copy.Exception = null;
+				PXRefNoteSelectorAttribute.EnsureNotePersistence(Base, Base.entityFilter.Current.Type, Base.entityFilter.Current.RefNoteID);
+				copy = Base.Emails.Update(copy);
+				Base.Save.Press();
+
+				PXNoteAttribute.CopyNoteAndFiles(Base.Emails.Cache, Base.Emails.Current, graph.Document.Cache, doc);
+				PXRedirectHelper.TryRedirect(graph, PXRedirectHelper.WindowMode.NewWindow);
+
+			}
+			return adapter.Get();
+		}
+	}
 }

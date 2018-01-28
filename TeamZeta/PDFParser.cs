@@ -41,9 +41,9 @@ namespace TeamZeta
 			}
 		}
 
-		public static string[] ParseFirstFileAsPDF(PXCache cache, object row)
+		public static string[] ParseFirstFileAsPDF(PXCache cache, object row, PXCache emailCache, object email)
 		{
-			byte[] File = GetFirstFile(cache, row);
+			byte[] File = GetFirstFile(emailCache, email);
 			if (File != null)
 			{
 				return ExtractTextFromPdf(File);

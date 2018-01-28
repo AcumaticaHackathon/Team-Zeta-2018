@@ -60,16 +60,15 @@ namespace TeamZeta
 
 				url = string.Concat(rooturl != null ? rooturl : string.Empty, HandlerURL, file.FileID.GetValueOrDefault(Guid.Empty).ToString("D"));
 
+				CRSMEmail email = Base.Emails.Current;
 
 				APInvoiceEntryPXInhExt graph = PXGraph.CreateInstance<APInvoiceEntryPXInhExt>();
 				graph.Clear();
 				APInvoice doc = (APInvoice)graph.Document.Cache.CreateInstance();
 				doc.GetExtension<APInvoiceExt>().UsrFileURL = url;
 				doc.LineCntr = 0;
-				TryFillValuesFromPDF(graph.Document.Cache, doc);
+				TryFillValuesFromPDF(graph.Document.Cache, doc, Base.Emails.Cache, email);
 				doc = graph.Document.Insert(doc);
-
-				CRSMEmail email = Base.Emails.Current;
 
 				(email).Selected = false;
 				CRSMEmail copy = PXCache<CRSMEmail>.CreateCopy(email);
@@ -92,9 +91,9 @@ namespace TeamZeta
 			return adapter.Get();
 		}
 
-	    private void TryFillValuesFromPDF(PXCache cache, APInvoice invoice)
+	    private void TryFillValuesFromPDF(PXCache invoiceCache, APInvoice invoice, PXCache emailCache, CRSMEmail email)
 	    {
-		    string[] content = PDFParser.ParseFirstFileAsPDF(cache, invoice);
+		    string[] content = PDFParser.ParseFirstFileAsPDF(invoiceCache, invoice, emailCache, email);
 		    if (content != null)
 		    {
 			    PXSelectBase<Vendor> select = new PXSelect<Vendor, Where<
@@ -105,7 +104,7 @@ namespace TeamZeta
 
 			    foreach (string phrase in content)
 			    {
-				    Vendor vendor = select.SelectSingle(phrase, phrase);
+				    Vendor vendor = select.SelectSingle(phrase.Trim(), phrase.Trim());
 
 				    if (vendor != null)
 				    {

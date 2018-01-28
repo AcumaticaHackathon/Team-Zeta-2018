@@ -55,6 +55,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="APInvoiceEntryExt.cs" />
     <Compile Include="APInvoiceEntryPXInhExt.cs" />
     <Compile Include="APInvoiceExt.cs" />
     <Compile Include="APVendorPopup.cs" />

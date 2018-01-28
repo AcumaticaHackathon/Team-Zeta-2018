@@ -33,7 +33,6 @@ namespace TeamZeta
         [PXButton()]
         public virtual IEnumerable createAP(PXAdapter adapter)
         {
-
             UploadFileRevision file = PXSelectJoin<UploadFileRevision,
             InnerJoin<UploadFile,
                 On<UploadFileRevision.fileID, Equal<UploadFile.fileID>,
@@ -64,13 +63,14 @@ namespace TeamZeta
                 APInvoiceEntryPXInhExt graph = PXGraph.CreateInstance<APInvoiceEntryPXInhExt>();
                 graph.Clear();
                 APInvoice doc = (APInvoice)graph.Document.Cache.CreateInstance();
-                doc.VendorID = 6995;
-                doc.InvoiceNbr = "TBD";
                 doc.GetExtension<APInvoiceExt>().UsrFileURL = url;
-                graph.Document.Insert(doc);
+                doc.LineCntr = 0;
+                doc = graph.Document.Insert(doc);
+                PXNoteAttribute.CopyNoteAndFiles(Base.Emails.Cache, Base.Emails.Current, graph.Document.Cache, doc);
                 PXRedirectHelper.TryRedirect(graph, PXRedirectHelper.WindowMode.NewWindow);
 
             }
+
 
             return adapter.Get();
         }
